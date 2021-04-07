@@ -532,3 +532,11 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int sys_clone(void){
+cprintf("clone");
+return 0;
+}
+
+
+
