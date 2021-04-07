@@ -220,6 +220,27 @@ fork(void)
 
   return pid;
 }
+//Adding clone system call
+int clone(void){
+	//int i, pid;
+  	struct proc *np;
+  	struct proc *curproc = myproc();
+  	// Allocate process.
+  	if((np = allocproc()) == 0){
+    	return -1;
+  	}
+  	np->sz = curproc->sz;
+  	np->parent = curproc;
+  	*np->tf = *curproc->tf;
+  	//return pid;
+  	return 0;
+}
+
+
+
+
+
+
 
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
@@ -531,11 +552,6 @@ procdump(void)
     }
     cprintf("\n");
   }
-}
-
-int sys_clone(void){
-cprintf("clone");
-return 0;
 }
 
 
