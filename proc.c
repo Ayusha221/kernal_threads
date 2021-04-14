@@ -220,20 +220,71 @@ fork(void)
 
   return pid;
 }
+
+
+
+
 //Adding clone system call
-int clone(void){
-	//int i, pid;
+int clone(void (*fcn)(void*), void *arg, void *stack){
+	
+	int i, pid;
   	struct proc *np;
+  	uint ustack[2];
+  	uint sp;
   	struct proc *curproc = myproc();
+
+  	if((uint)stack%PGSIZE!=0){
+  		return -1;
+  	}
+  	
+  	
   	// Allocate process.
   	if((np = allocproc()) == 0){
     	return -1;
   	}
+  	
+  	
+  	
+  	
+  	np->pgdir = curproc->pgdir;
   	np->sz = curproc->sz;
   	np->parent = curproc;
   	*np->tf = *curproc->tf;
+  	np->tstack = stack;
+  	np->tf->eax =0;
+  	sp = (uint)stack + PGSIZE;
+  	ustack[0] = 0xffffffff;
+  	ustack[1] = (uint)arg;
+  	sp -= 2*sizeof(uint);
+  	if(copyout(np->pgdir,sp,ustack,2*sizeof(uint))<0){
+  	return -1;
+  	}
+  	np->tf->esp=sp;
+  	np->tf->ebp = np->tf->esp;
+  	np->tf->eip = (uint)fcn;
+  	
+  	
+  	
+  	
+  	
+   for(i = 0; i < NOFILE; i++)
+    if(curproc->ofile[i])
+      np->ofile[i] = filedup(curproc->ofile[i]);
+  np->cwd = idup(curproc->cwd);
+
+  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
+
+  pid = np->pid;
+
+  acquire(&ptable.lock);
+
+  np->state = RUNNABLE;
+
+  release(&ptable.lock);
+
+  return pid;
   	//return pid;
-  	return 0;
+  	//return 0;
 }
 
 
