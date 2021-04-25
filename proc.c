@@ -6,7 +6,8 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-
+//#include<stdio.h>
+//#include "user.h"
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -225,19 +226,19 @@ fork(void)
 
 
 //Adding clone system call
-int clone(void (*fcn)(void*), void *arg, void *stack){
-	
+int clone(void(*fcn)(void *), void *arg, void *stack){
+
 	int i, pid;
   	struct proc *np;
   	uint ustack[2];
   	uint sp;
   	struct proc *curproc = myproc();
-
+	cprintf("in clone1");
   	if((uint)stack%PGSIZE!=0){
   		return -1;
   	}
   	
-  	
+  	cprintf("in clone2");	
   	// Allocate process.
   	if((np = allocproc()) == 0){
     	return -1;
@@ -245,46 +246,54 @@ int clone(void (*fcn)(void*), void *arg, void *stack){
   	
   	
   	
-  	
+  	cprintf("in clone3");
   	np->pgdir = curproc->pgdir;
   	np->sz = curproc->sz;
   	np->parent = curproc;
+  	cprintf("in clone4");
   	*np->tf = *curproc->tf;
   	np->tstack = stack;
   	np->tf->eax =0;
+  	cprintf("in clone5");
   	sp = (uint)stack + PGSIZE;
-  	ustack[0] = 0xffffffff;
+  	ustack[0] = 0xFFFFFFFF;
   	ustack[1] = (uint)arg;
+  	cprintf("in clone6");
   	sp -= 2*sizeof(uint);
   	if(copyout(np->pgdir,sp,ustack,2*sizeof(uint))<0){
   	return -1;
   	}
+  	cprintf("in clone7");
   	np->tf->esp=sp;
   	np->tf->ebp = np->tf->esp;
   	np->tf->eip = (uint)fcn;
-  	
-  	
-  	
-  	
-  	
-   for(i = 0; i < NOFILE; i++)
-    if(curproc->ofile[i])
+  	cprintf("in clone8");
+  	for(i = 0; i < NOFILE; i++){
+    if(curproc->ofile[i]){
       np->ofile[i] = filedup(curproc->ofile[i]);
+      }
+     }
   np->cwd = idup(curproc->cwd);
 
-  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
-
+  safestrcpy(np->name, curproc->name, sizeof(curproc->name));	
+  	
+  	
+  	
+   
+	cprintf("in clone9");
   pid = np->pid;
 
   acquire(&ptable.lock);
-
+cprintf("in clone10");
   np->state = RUNNABLE;
 
   release(&ptable.lock);
-
+cprintf("in clone11\n");
   return pid;
   	//return pid;
-  	//return 0;
+  	//return 0;	*/
+  	//printf("hellooo");
+  	
 }
 
 
