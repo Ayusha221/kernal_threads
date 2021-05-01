@@ -12,24 +12,6 @@ sys_fork(void)
 {
   return fork();
 }
-int
-sys_clone(void)
-{
-	void(*fcn)(void*);
-	void* arg;
-	void* stack;
-	if(argptr(0,(void*)&fcn,sizeof(void*))<0){
-	return -1;
-	}
-	if(argptr(1,(void*)&arg,sizeof(void*))<0){
-	return -1;
-	}
-	if(argptr(2,(void*)&stack,sizeof(void*))<0){
-	return -1;
-	}
-	
-  return clone(fcn,arg,stack);
-}
 
 int
 sys_exit(void)
@@ -54,10 +36,50 @@ sys_kill(void)
   return kill(pid);
 }
 
+int sys_gettid(void){
+  return myproc()->pid;
+}
+
+int sys_tkill(void){
+  int pid;
+  if(argint(0, &pid) < 0)
+    return -1;
+  return tkill(pid);
+}
+
+
 int
 sys_getpid(void)
 {
   return myproc()->pid;
+}
+
+int
+sys_clone(void)
+{
+	void(*fcn)(void*);
+	void* arg;
+	void* stack;
+	if(argptr(0,(void*)&fcn,sizeof(void*))<0){
+	return -1;
+	}
+	if(argptr(1,(void*)&arg,sizeof(void*))<0){
+	return -1;
+	}
+	if(argptr(2,(void*)&stack,sizeof(void*))<0){
+	return -1;
+	}
+	
+  return clone(fcn,arg,stack);
+}
+
+int
+sys_join(void) {
+  void **stack;
+  if (argptr(0, (void*)&stack, sizeof(void**)) < 0)
+    return -1;
+
+  return join(stack);
 }
 
 int

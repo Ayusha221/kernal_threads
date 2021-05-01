@@ -3,6 +3,10 @@
 #include "user.h"
 #include "param.h"
 
+#undef NULL
+#define NULL ((void*)0)
+
+#define PGSIZE (4096)
 // Memory allocator by Kernighan and Ritchie,
 // The C programming Language, 2nd ed.  Section 8.7.
 
@@ -88,3 +92,26 @@ malloc(uint nbytes)
         return 0;
   }
 }
+
+
+int thread_create(void (*start_routine)(void*), void *arg) {
+
+ void *stack = malloc(PGSIZE*2);
+
+  if((uint)stack % PGSIZE){
+    stack = stack + (4096 - (uint)stack % PGSIZE);
+  }
+  int pid = clone(start_routine, arg, stack);
+
+  return pid;
+}
+
+int thread_join() {
+  void *stack = malloc(sizeof(void*));
+  int pid = join(&stack);
+//  printf(1, "addr freed: %p\n", stack);
+  free(stack);
+ 
+  return pid;
+}
+

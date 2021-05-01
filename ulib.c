@@ -3,6 +3,12 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
+#include "param.h"
+#include "syscall.h"
+#include "traps.h"
+#include "fs.h"
+
+#define PGSIZE 4096
 
 char*
 strcpy(char *s, const char *t)
@@ -104,3 +110,22 @@ memmove(void *vdst, const void *vsrc, int n)
     *dst++ = *src++;
   return vdst;
 }
+
+
+int lock_init(lock_t *lk)
+{
+	lk->flag = 0;
+	return 0;
+}
+
+void lock_acquire(lock_t *lk){
+	while(xchg(&lk->flag, 1) != 0)
+	    ;
+}
+
+void lock_release(lock_t *lk){
+	xchg(&lk->flag, 0);
+}
+
+
+
