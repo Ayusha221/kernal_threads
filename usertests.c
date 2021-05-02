@@ -12,6 +12,9 @@ char buf[8192];
 char name[3];
 char *echoargv[] = { "echo", "ALL", "TESTS", "PASSED", 0 };
 int stdout = 1;
+#define PGSIZE 4096
+lock_t* lock;
+volatile uint shared=0;
 
 // does chdir() call iput(p->cwd) in a transaction?
 void
@@ -552,7 +555,9 @@ fourfiles(void)
   }
 
   for(pi = 0; pi < 4; pi++){
+
     wait();
+
   }
 
   for(i = 0; i < 2; i++){
@@ -1745,6 +1750,55 @@ rand()
   return randstate;
 }
 
+void fact(void* arg1){
+       
+   int i;
+   lock_acquire(lock);
+   int temp = 0;
+   for(i=0;i<4000;i++){
+		temp = shared;
+		temp = temp+1;
+		shared=temp;
+	}
+   //printf(1,"Value at this point is: %d\n", shared);
+   lock_release(lock);  
+   exit();
+}
+void threadtest(void){
+  printf(1,"Threadtest started\n");
+  
+   int arg1 = 22;
+   lock = (lock_t*)malloc(sizeof(lock_t));
+   lock_init(lock);
+   
+   
+   thread_create(&fact, &arg1);
+   thread_create(&fact, &arg1);
+   thread_create(&fact, &arg1);
+
+  	thread_create(&fact, &arg1);
+  	thread_create(&fact, &arg1);
+  	thread_create(&fact, &arg1);
+  	thread_create(&fact, &arg1);
+
+  sleep(30);
+
+	thread_join();
+	thread_join();
+	thread_join();
+	thread_join();
+	thread_join();
+	thread_join();
+
+
+   if (shared == 28000){
+        printf(1, "Threadtest Passed\n");
+
+   }else{
+     printf(1,"Threadtest Failed!\n");
+   }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1756,6 +1810,7 @@ main(int argc, char *argv[])
   }
   close(open("usertests.ran", O_CREATE));
 
+  threadtest();
   argptest();
   createdelete();
   linkunlink();

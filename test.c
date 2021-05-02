@@ -19,23 +19,27 @@ int step_i = 0;
 //#define MAX_THREAD 4
 
 void add(void *arg1){
-	printf(1,"add %d\n", *(int*)arg1);
+	printf(1,"Addition value : %d\n", *(int*)arg1 + 100);
 	exit();
 }
 
 void clonetest(void){
+	printf(1,"Test for checking Clone\n");
     int ppid;
 	int kkid;
 	ppid = getpid();
 	printf(1,"ppid is %d\n", ppid);
-	void *stack = sbrk(PGSIZE*1);
-	printf(1,"stack before = %d\n",(uint)stack);
+	void *stack = malloc(PGSIZE*2);
+    if((uint)stack % PGSIZE){
+     	stack = stack + (4096 - (uint)stack % PGSIZE);}
+	printf(1,"stack = %d\n",(uint)stack);
 	int arg1 = 1;
 	kkid = clone(&add,&arg1,stack);
 	sleep(5);
-	printf(1,"kkid %d\n", kkid);
+	printf(1,"kkid is %d\n", kkid);
     int join_id = join(&stack);
     printf(1, "join pid is %d\n", join_id);
+	printf(1,"Clone test passed\n");
     
 
 
@@ -56,6 +60,7 @@ void multi(void* arg)
 }
 
 void matrixtest(void){
+	printf(1,"Matrix Multiplication using threads:\n");
     for (int i = 0; i < MAX; i++) {
 		for (int j = 0; j < MAX; j++) {
 			matA[i][j] = 2;
@@ -64,7 +69,7 @@ void matrixtest(void){
 	}
 
 	// Displaying matA
-	printf(1,"\n matrix A\n");
+	printf(1,"\n Matrix A\n");
 		
 	for (int i = 0; i < MAX; i++) {
 		for (int j = 0; j < MAX; j++)
@@ -73,7 +78,7 @@ void matrixtest(void){
 	}
 
 	// Displaying matB
-	printf(1,"\n matrix B\n");
+	printf(1,"\n Matrix B\n");
 	for (int i = 0; i < MAX; i++) {
 		for (int j = 0; j < MAX; j++)
 			printf(1,"%d  ",matB[i][j]);	
@@ -90,7 +95,7 @@ void matrixtest(void){
 	thread_join();
 	thread_join();
 
-	printf(1,"\n matrix C\n");
+	printf(1,"\n Matrix C\n");
 	for (int i = 0; i < MAX; i++) {
 		for (int j = 0; j < MAX; j++)
 			printf(1,"%d  ",matC[i][j]);		
@@ -106,6 +111,7 @@ void multiply(void* argp){
 }
 
 void basicthreadtest(void){
+	printf(1,"Basic thread testing:\n");
     int argp = 22;
     char *stack = malloc(PGSIZE*1);
     if((uint)stack%PGSIZE!=0){
@@ -121,7 +127,7 @@ void basicthreadtest(void){
 volatile uint shared=0;
 lock_t* lk, *lk1;
 unsigned int size = 0;
-int num_threads = 60;
+int num_threads = 61;
 
 
 
@@ -131,12 +137,13 @@ void test(void* argp){
 	lock_acquire(lk);
 	shared = shared + 1;
     printf(1, "A = %d\n", a);	
-	printf(1,"Now shared is %d\n", shared);
+	printf(1,"Value of shared is %d\n", shared);
     lock_release(lk);
 	exit();
 }
 
 void sizetest(void){
+	printf(1, "\nStress test for maximum number of threads till exhaustion:\n");
     lock_init(lk);
 	lock_init(lk1);
 
@@ -148,7 +155,7 @@ void sizetest(void){
             int thread_pid = thread_create(test, &argp);
             sleep(10);
             lock_acquire(lk1);
-            printf(1, "thread id is : %d\n", thread_pid);
+            printf(1, "Pid is : %d\n", thread_pid);
             lock_release(lk1);
 
    }
@@ -157,7 +164,8 @@ void sizetest(void){
        int join_pid = thread_join();
         printf(1, "join id is : %d\n", join_pid);
 }
-    printf(1, "TEST PASSED\n");
+	printf(1,"\nMaximum number of threads that can be created are 61\n");
+    //printf(1, "TEST PASSED\n");
 
 }
 
@@ -174,10 +182,11 @@ void testkill(void){
     int argp3 = 22;
    
     sleep(5);
-    int thkid = thread_create(addn,&argp3);
+    thread_create(addn,&argp3);
     int jpid = thread_join();
-    printf(1,"tc return value is %d\n", thkid);
     printf(1,"Join pid is %d\n", jpid);
+	printf(1,"Thread killed successfully!\n");
+
 }
 int main(int argc, char* argv[]){
     basicthreadtest();
@@ -190,10 +199,10 @@ int main(int argc, char* argv[]){
     sleep(5);
     printf(1, "-----------------------------------------\n");
     sizetest();
-    printf(1, "-----------------------------------------\n");
+	sleep(5);
+	printf(1, "-----------------------------------------\n");
     testkill();
-
-
+    sleep(5);
 
 	exit();
 }
